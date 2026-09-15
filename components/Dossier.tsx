@@ -84,9 +84,18 @@ function Contenuto() {
   );
 }
 
-export default function Dossier({ iniziale }: { iniziale: Snapshot }) {
+export default function Dossier({
+  iniziale,
+  deploy,
+}: {
+  iniziale: Snapshot;
+  /** Indirizzo e ambiente del deploy, quando si gira su Vercel. Serve
+      all'avviso: con più progetti collegati allo stesso repository, sapere
+      quale si ha davanti è metà della diagnosi. */
+  deploy: string | null;
+}) {
   return (
-    <CollabProvider iniziale={iniziale}>
+    <CollabProvider iniziale={iniziale} deploy={deploy}>
       <div className="wrap">
         <Barra />
         <Avviso />

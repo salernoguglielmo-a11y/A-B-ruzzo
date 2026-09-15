@@ -10,12 +10,15 @@ import Sequenza from "./Sequenza";
 import TabellaClassi from "./TabellaClassi";
 
 export default function Nodo({ nodo }: { nodo: NodoStatico }) {
-  const { flag, scriviFlag } = useCollab();
+  const { flag, scriviFlag, montato } = useCollab();
 
   const chiave = chiaveStatoNodo(nodo.id);
   const valore = flag(chiave);
   const stato = statoNodo(valore?.value);
-  const firma = valore?.updatedBy ? `${valore.updatedBy} · ${daQuando(valore.updatedAt)}` : undefined;
+  // `daQuando` guarda l'orologio: prima del montaggio darebbe un'etichetta
+  // diversa da quella calcolata sul server.
+  const firma =
+    montato && valore?.updatedBy ? `${valore.updatedBy} · ${daQuando(valore.updatedAt)}` : undefined;
 
   return (
     <section className="node" id={nodo.id}>

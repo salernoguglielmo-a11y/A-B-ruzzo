@@ -1,8 +1,31 @@
 import Dossier from "@/components/Dossier";
+import Seme from "@/components/Seme";
 import { caricaSnapshot } from "@/lib/snapshot";
 import { VARIABILI_RICHIESTE, variabiliMancanti } from "@/lib/supabase-server";
 
 export const dynamic = "force-dynamic";
+
+/** Quale progetto Vercel e quale deploy stiamo guardando, se siamo su Vercel. */
+function firmaDeploy(): string | null {
+  const dove = process.env.VERCEL_URL;
+  if (!dove) return null;
+  const ambiente = process.env.VERCEL_ENV;
+  return ambiente ? `${dove} (${ambiente})` : dove;
+}
+
+function Firma() {
+  const dove = process.env.VERCEL_URL;
+  if (!dove) return null;
+  const commit = process.env.VERCEL_GIT_COMMIT_SHA?.slice(0, 7);
+  const ambiente = process.env.VERCEL_ENV;
+  return (
+    <p className="firma-deploy">
+      Stai guardando <code>{dove}</code>
+      {ambiente ? <> · ambiente <b>{ambiente}</b></> : null}
+      {commit ? <> · commit <code>{commit}</code></> : null}
+    </p>
+  );
+}
 
 /** L'elenco delle tre variabili, con accanto quali ci sono e quali no. */
 function ElencoVariabili({ mancanti }: { mancanti: string[] }) {
@@ -41,7 +64,8 @@ function ComeSiRisolve() {
       <p className="minuta">
         Se una variabile risulta ancora mancante dopo il redeploy, quasi sempre è stata salvata su
         un ambiente diverso da quello che stai guardando, oppure il nome ha una lettera fuori posto:
-        vanno scritti esattamente così, maiuscole comprese.
+        vanno scritti esattamente così, maiuscole comprese. Controlla anche di essere sul progetto
+        Vercel giusto: l’indirizzo qui sotto dice quale stai guardando davvero.
       </p>
     </>
   );
@@ -65,6 +89,7 @@ export default async function Pagina() {
           </p>
           <ElencoVariabili mancanti={mancanti} />
           <ComeSiRisolve />
+          <Firma />
         </div>
       </div>
     );
@@ -88,6 +113,7 @@ export default async function Pagina() {
             dal SQL Editor di Supabase o con <code>npx supabase db push</code>. Se l’hai già fatto,
             ricopia le chiavi da <b>Settings → API</b>: capita che si tronchino incollandole.
           </p>
+          <Firma />
         </div>
       </div>
     );
@@ -99,14 +125,20 @@ export default async function Pagina() {
         <div className="diagnosi">
           <h1>Il database è vuoto</h1>
           <p>
-            Le tabelle esistono ma non contengono ancora nulla. Esegui <code>npm run seed</code> dal
-            tuo computer, con <code>.env.local</code> che punta a questo progetto Supabase, per
-            popolarle con i contenuti di partenza del dossier.
+            Le tabelle esistono ma non contengono ancora nulla. Il bottone qui sotto inserisce i
+            contenuti di partenza del dossier, gli stessi di <code>npm run seed</code>: aggiunge
+            soltanto ciò che manca e non sovrascrive mai nulla, quindi si può premere senza paura.
           </p>
+          <Seme />
+          <p className="minuta">
+            In alternativa, dal tuo computer: <code>npm run seed</code>, con <code>.env.local</code>{" "}
+            che punta a questo progetto Supabase.
+          </p>
+          <Firma />
         </div>
       </div>
     );
   }
 
-  return <Dossier iniziale={iniziale} />;
+  return <Dossier iniziale={iniziale} deploy={firmaDeploy()} />;
 }

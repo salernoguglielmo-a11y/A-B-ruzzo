@@ -7,7 +7,7 @@ import Editable from "./collab/Editable";
 import { useCollab } from "./collab/CollabProvider";
 
 export default function TabellaClassi() {
-  const { flag, scriviFlag } = useCollab();
+  const { flag, scriviFlag, montato } = useCollab();
 
   const inclusa = (cl: string) => acceso(flag(chiaveSpuntaClasse(cl))?.value);
   const quante = CLASSI.filter((c) => inclusa(c.cl)).length;
@@ -26,6 +26,7 @@ export default function TabellaClassi() {
     scriviFlag([{ key: chiaveSpuntaClasse(cl), value: String(!inclusa(cl)) }]);
 
   const firma = (cl: string) => {
+    if (!montato) return undefined; // l'orologio non combacia fra server e browser
     const v = flag(chiaveSpuntaClasse(cl));
     return v?.updatedBy ? `${v.updatedBy} · ${daQuando(v.updatedAt)}` : undefined;
   };

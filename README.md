@@ -38,12 +38,15 @@ controllo e non deve mai comparire in una variabile che comincia per
 
 ## 2. Applicare la migrazione
 
-Lo schema sta in `supabase/migrations/0001_init.sql`. Si può applicare in due
-modi, a scelta.
+Le migrazioni stanno in `supabase/migrations/` e vanno applicate in ordine:
+`0001_init.sql` crea lo schema, `0002_chiudi_le_rpc.sql` toglie alla chiave anon
+il permesso di eseguire le due funzioni di lock (vedi « Una nota sui permessi »,
+più sotto). Si possono applicare in due modi, a scelta.
 
-**Dal browser.** Apri **SQL Editor** nella dashboard di Supabase, incolla tutto
-il contenuto del file, esegui. Il file si può rilanciare quante volte si vuole:
-è scritto per non fallire se le tabelle ci sono già.
+**Dal browser.** Apri **SQL Editor** nella dashboard di Supabase, incolla il
+contenuto del primo file, esegui; poi lo stesso con il secondo. Si possono
+rilanciare quante volte si vuole: sono scritte per non fallire se le tabelle ci
+sono già.
 
 **Dalla riga di comando**, con la CLI di Supabase (`supabase/config.toml` è già
 nel repository, serve alla CLI e non contiene segreti):
@@ -91,15 +94,31 @@ rilanciare senza paura, anche dopo mesi di lavoro sul dossier.
 4. Deploy.
 
 Al primo avvio, se le tabelle sono vuote, la pagina lo dice invece di mostrare
-un dossier senza testo. Per popolarle basta lanciare `npm run seed` dal proprio
-computer, con `.env.local` che punta al progetto Supabase di produzione.
+un dossier senza testo, e offre un bottone che le popola. Fa lo stesso lavoro di
+`npm run seed`, ma dal server: non serve avere un computer con le chiavi in
+mano. Inserisce soltanto ciò che manca, e si rifiuta di partire se il dossier è
+già popolato. In alternativa resta `npm run seed` dal proprio computer, con
+`.env.local` che punta al progetto Supabase di produzione.
 
 ### Cambiando una variabile d'ambiente serve sempre un Redeploy
 
-Vercel legge le variabili quando costruisce il sito, non a ogni richiesta:
-finché non si ridistribuisce, il sito continua a usare quelle di prima. Su
-Vercel: **Deployments → … → Redeploy**, togliendo la spunta « Use existing
-Build Cache ».
+Le due variabili che cominciano per `NEXT_PUBLIC_` non vengono lette a ogni
+richiesta: Next le scrive **dentro al codice che arriva al browser, durante la
+build**. Impostarle su Vercel dopo che il sito è stato costruito non basta, e
+non basta nemmeno un Redeploy che riusi la cache di build. Su Vercel:
+**Deployments → … → Redeploy**, togliendo la spunta « Use existing Build
+Cache ».
+
+Il server, invece, le legge a runtime. Le due letture possono quindi
+discordare, ed è il caso peggiore perché non somiglia a un errore: il server ha
+i valori e disegna il dossier, il browser non li ha e si ferma su « This page
+couldn't load ». Il dossier adesso se ne accorge da sé: resta in piedi, si
+riallinea ogni quindici secondi invece che in diretta, e lo scrive in una
+striscia in cima alla pagina. Ma il rimedio resta il Redeploy senza cache.
+
+> Se allo stesso repository sono collegati più progetti Vercel, le pagine di
+> diagnosi mostrano in fondo l'indirizzo e l'ambiente del deploy che si sta
+> guardando: serve a non andare a cercare una variabile nel progetto sbagliato.
 
 ## Le variabili
 
@@ -145,14 +164,24 @@ dalla barra. Non è un account: serve alla presenza e a firmare le modifiche.
 l'indirizzo, in lettura e in scrittura. Volendo rimetterci una barriera senza
 toccare il codice, Vercel offre **Settings → Deployment Protection**.
 
+### Una nota sui permessi
+
+Le due funzioni di lock sono `security definer`: girano con i privilegi del
+proprietario e scavalcano RLS. Devono quindi restare fuori portata della chiave
+anon, che ogni browser riceve insieme alla pagina. Revocarle ai singoli ruoli
+non basta — creando una funzione Postgres concede `EXECUTE` a `PUBLIC`, e i
+ruoli lo ereditano da lì: va revocato a `PUBLIC`, ed è quello che fa
+`0002_chiudi_le_rpc.sql`. Senza, chiunque avesse l'indirizzo poteva prenotare
+tutti i campi del dossier e lasciare gli altri a guardare.
+
 ## Struttura
 
 ```
 app/            pagine, rotte API, i due fogli di stile
 components/     il dossier; collab/ tiene Realtime, lock e coda
 lib/            costanti estratte dal dossier, chiavi, tipi
-scripts/        seed del database
-supabase/       la migrazione versionata e la configurazione della CLI
+scripts/        seed del database da riga di comando
+supabase/       le migrazioni versionate e la configurazione della CLI
 public/allegato il .docx della committente
 ```
 

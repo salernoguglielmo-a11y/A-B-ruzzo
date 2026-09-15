@@ -160,8 +160,11 @@ create policy questions_read on public.questions for select to anon, authenticat
 create policy locks_read     on public.locks     for select to anon, authenticated using (true);
 
 revoke insert, update, delete on public.fields, public.flags, public.questions, public.locks from anon, authenticated;
-revoke execute on function public.acquire_lock(text, text, text, integer) from anon, authenticated;
-revoke execute on function public.release_lock(text, text) from anon, authenticated;
+-- Da PUBLIC, non solo da anon: creando una funzione Postgres concede EXECUTE
+-- a PUBLIC, e togliere il permesso ai singoli ruoli lascia in piedi quello
+-- che ereditano da lì. Vedi 0002_chiudi_le_rpc.sql.
+revoke execute on function public.acquire_lock(text, text, text, integer) from public, anon, authenticated;
+revoke execute on function public.release_lock(text, text) from public, anon, authenticated;
 
 -- --------------------------- Realtime --------------------------------------
 -- I client si iscrivono alle modifiche di queste quattro tabelle.

@@ -53,6 +53,13 @@ type Contesto = {
 
   presenze: Presenza[];
   connesso: boolean;
+  /** False quando il sito è stato costruito senza le variabili pubbliche:
+      si salva ancora, ma le modifiche degli altri non arrivano da sole. */
+  sincronizzazioneViva: boolean;
+  /** False durante il render sul server e al primo render nel browser. */
+  montato: boolean;
+  /** Indirizzo e ambiente del deploy su Vercel, se si è su Vercel. */
+  deploy: string | null;
   inCoda: number;
   statoSalvataggio: StatoSalvataggio;
   /** Cambia ogni cinque secondi: serve a ridisegnare i tempi relativi. */
@@ -84,9 +91,11 @@ function valoreDa(r: RigaValore): Valore {
 
 export default function CollabProvider({
   iniziale,
+  deploy,
   children,
 }: {
   iniziale: Snapshot;
+  deploy?: string | null;
   children: React.ReactNode;
 }) {
   const [campi, setCampi] = useState<Record<string, Valore>>(iniziale.fields);
@@ -99,7 +108,14 @@ export default function CollabProvider({
      senza aspettare che scatti il battito del websocket. */
   const [canaleAgganciato, setCanaleAgganciato] = useState(false);
   const [reteViva, setReteViva] = useState(true);
+  const [sincronizzazioneViva, setSincronizzazioneViva] = useState(true);
   const connesso = canaleAgganciato && reteViva;
+  /* I tempi relativi (« due minuti fa ») e i nomi di chi ha toccato un campo
+     si calcolano da `Date.now()`: sul server danno un risultato, nel browser
+     un istante dopo ne danno un altro, e React se ne lamenta come di una
+     idratazione non combaciante. Si disegnano dal secondo render in poi. */
+  const [montato, setMontato] = useState(false);
+  useEffect(() => setMontato(true), []);
   const [inCoda, setInCoda] = useState(0);
   const [statoSalvataggio, setStatoSalvataggio] = useState<StatoSalvataggio>("fermo");
   const [battito, setBattito] = useState(0);
@@ -490,6 +506,18 @@ export default function CollabProvider({
 
   useEffect(() => {
     const sb = supabaseBrowser();
+    if (!sb) {
+      /* Costruito senza le variabili pubbliche. Un tempo qui si sollevava un
+         errore, che senza error boundary sopra rendeva bianca la pagina. Ora
+         si resta in piedi: le scritture passano dalle rotte API come sempre,
+         e si riallinea a intervalli invece che in diretta. */
+      setSincronizzazioneViva(false);
+      setCanaleAgganciato(true);
+      void riallineaRef.current();
+      const id = setInterval(() => void riallineaRef.current(), 15_000);
+      return () => clearInterval(id);
+    }
+
     const ch = sb.channel("dossier", { config: { presence: { key: clientId } } });
 
     const suValore =
@@ -637,6 +665,9 @@ export default function CollabProvider({
       rilasciaLock,
       presenze,
       connesso,
+      sincronizzazioneViva,
+      montato,
+      deploy: deploy ?? null,
       inCoda,
       statoSalvataggio,
       battito,
@@ -659,6 +690,9 @@ export default function CollabProvider({
       rilasciaLock,
       presenze,
       connesso,
+      sincronizzazioneViva,
+      montato,
+      deploy,
       inCoda,
       statoSalvataggio,
       battito,

@@ -33,6 +33,7 @@ export default function Editable({ chiave, tag = "div", className, ariaLabel }: 
     prendiLock,
     rinnovaLock,
     rilasciaLock,
+    montato,
   } = useCollab();
 
   const elemento = useRef<HTMLElement | null>(null);
@@ -43,9 +44,19 @@ export default function Editable({ chiave, tag = "div", className, ariaLabel }: 
   const [iniziale] = useState(() => valore?.value ?? "");
   const ultimoSalvato = useRef(iniziale);
 
+  /* Il campo è bloccato quando la prenotazione è di qualcun altro, e per tutto
+     il tempo in cui lo è: la sola prenotazione basta a dirlo.
+
+     Prima c'era anche un `negato`, alzato quando il server rifiutava il lock.
+     Ma non si abbassava più: `contentEditable` a false rende l'elemento non
+     focalizzabile, quindi `onFocus` — l'unico punto che lo azzerava — non
+     sarebbe mai più scattato. Un campo negato una volta restava di sasso fino
+     al ricaricamento della pagina, anche molto dopo che l'altro se n'era
+     andato. E non serviva a niente: `prendiLock` registra la prenotazione di
+     chi ha vinto prima di restituire il rifiuto, quindi il blocco si vede già
+     da `lock`, e scade con lui. */
   const lock = lockAltrui(chiave);
-  const [negato, setNegato] = useState(false);
-  const bloccato = lock !== null || negato;
+  const bloccato = lock !== null;
 
   const salva = useCallback(() => {
     const el = elemento.current;
@@ -84,11 +95,11 @@ export default function Editable({ chiave, tag = "div", className, ariaLabel }: 
 
   const suFocus = useCallback(() => {
     attivo.current = true;
-    setNegato(false);
     void prendiLock(chiave).then((concesso) => {
       if (concesso) return;
-      // Qualcun altro è arrivato un istante prima: si esce dal campo.
-      setNegato(true);
+      // Qualcun altro è arrivato un istante prima: si esce dal campo. La
+      // prenotazione altrui è già stata registrata, quindi al render seguente
+      // il campo risulta bloccato da sé.
       attivo.current = false;
       elemento.current?.blur();
     });
@@ -108,7 +119,9 @@ export default function Editable({ chiave, tag = "div", className, ariaLabel }: 
   let nota: string | undefined;
   if (lock) {
     nota = `${lock.holder} sta scrivendo`;
-  } else if (valore?.updatedBy) {
+  } else if (montato && valore?.updatedBy) {
+    // Solo dopo il montaggio: sul server « adesso » è un altro istante, e la
+    // differenza farebbe fallire l'idratazione.
     const quando = Date.now() - new Date(valore.updatedAt).getTime();
     if (quando < FINESTRA_TOCCO) nota = `${valore.updatedBy} · ${daQuando(valore.updatedAt)}`;
   }

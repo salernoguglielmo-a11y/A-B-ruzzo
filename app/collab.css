@@ -380,3 +380,43 @@ a.btn:hover {
     display: none;
   }
 }
+
+/* ------------------ diagnostica: firma del deploy e seed ----------------- */
+
+/* Tre progetti Vercel possono guardare lo stesso repository: dire quale si ha
+   davanti evita di cercare una variabile sbagliata nel posto sbagliato. */
+.diagnosi .firma-deploy {
+  margin-top: 26px;
+  padding-top: 14px;
+  border-top: 1px solid var(--line);
+  font-size: 12px;
+  color: var(--faint);
+}
+.diagnosi .firma-deploy code {
+  font-size: 11.5px;
+  background: transparent;
+  padding: 0;
+  color: var(--faint);
+}
+
+.diagnosi .semina {
+  margin-top: 18px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+}
+.diagnosi .semina .errore-grezzo {
+  flex: 1 1 100%;
+  margin: 0;
+}
+
+/* L'avviso di sincronizzazione spenta non è un guasto di rete: si distingue. */
+.avviso code {
+  font-family: var(--mono);
+  font-size: 11.5px;
+  background: transparent;
+  padding: 0;
+  color: inherit;
+  text-decoration: underline dotted;
+}
