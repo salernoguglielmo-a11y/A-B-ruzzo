@@ -30,9 +30,9 @@ export default async function proxy(req: NextRequest) {
     return NextResponse.json({ errore: "sessione scaduta" }, { status: 401 });
   }
 
-  const destinazione = new URL("/login", req.url);
-  if (pathname !== "/") destinazione.searchParams.set("da", pathname);
-  return NextResponse.redirect(destinazione);
+  // Il dossier è una pagina sola: dopo la password si torna sempre lì, senza
+  // portarsi dietro la destinazione di partenza.
+  return NextResponse.redirect(new URL("/login", req.url));
 }
 
 export const config = {

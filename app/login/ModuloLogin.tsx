@@ -1,11 +1,8 @@
 "use client";
 
-import { useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
 
 export default function ModuloLogin() {
-  const router = useRouter();
-  const parametri = useSearchParams();
   const [password, setPassword] = useState("");
   const [errore, setErrore] = useState("");
   const [inCorso, setInCorso] = useState(false);
@@ -27,9 +24,9 @@ export default function ModuloLogin() {
         setInCorso(false);
         return;
       }
-      const da = parametri.get("da");
-      router.replace(da && da.startsWith("/") ? (da as "/") : "/");
-      router.refresh();
+      // Navigazione piena, non `router.replace`: così la richiesta successiva
+      // porta con sé il cookie appena ricevuto e il middleware la lascia passare.
+      window.location.replace("/");
     } catch {
       setErrore("Non riesco a raggiungere il server. Riprova.");
       setInCorso(false);

@@ -568,7 +568,10 @@ export default function CollabProvider({
       .subscribe((stato) => {
         if (stato === "SUBSCRIBED") {
           setCanaleAgganciato(true);
-          void ch.track({ nome: nomeRef.current || "senza nome", clientId });
+          // Ci si annuncia solo avendo un nome: altrimenti gli altri vedrebbero
+          // comparire « senza nome » per l'istante che separa la password dalla
+          // risposta al gate. Ci pensa l'effetto qui sotto, appena arriva.
+          if (nomeRef.current) void ch.track({ nome: nomeRef.current, clientId });
           void riallineaRef.current();
           void svuotaRef.current();
         } else {
