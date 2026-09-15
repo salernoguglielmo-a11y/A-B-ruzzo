@@ -6,10 +6,16 @@ export default defineConfig([
   ...nextVitals,
   ...nextTypeScript,
   {
+    files: ["components/collab/CollabProvider.tsx"],
     rules: {
       // These effects intentionally synchronize React state with browser APIs,
       // realtime data and an interval-driven lock expiry pass.
       "react-hooks/set-state-in-effect": "off",
+    },
+  },
+  {
+    files: ["components/collab/Editable.tsx"],
+    rules: {
       // The timestamp is display-only and is refreshed by the provider heartbeat.
       "react-hooks/purity": "off",
       // Editable renders a dynamic intrinsic element via createElement; forwarding
