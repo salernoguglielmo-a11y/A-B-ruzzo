@@ -6,7 +6,13 @@ un'applicazione su cui due-sei persone scrivono insieme senza sovrascriversi.
 Ogni campo si salva da sé poco dopo l'ultima battuta; chi entra in un campo lo
 prenota e gli altri lo vedono bordato con il suo nome; le modifiche degli altri
 arrivano mentre si lavora e non toccano mai il campo che si ha sotto il cursore.
-Si entra con una sola password condivisa e si dichiara come ci si chiama.
+Entrando si dichiara soltanto come ci si chiama, per la presenza e per firmare
+le modifiche.
+
+> **Il dossier è aperto.** Non c'è password: chiunque abbia l'indirizzo può
+> leggerlo e modificarlo. L'indirizzo è l'unica cosa che lo protegge, quindi
+> conviene non diffonderlo. La pagina chiede ai motori di ricerca di non
+> indicizzarla, ma è una richiesta, non una garanzia.
 
 - **Next.js** (App Router) e TypeScript
 - **Supabase**: Postgres per i dati, Realtime per la sincronizzazione
@@ -62,25 +68,10 @@ Che cosa crea:
 Le chiavi si leggono da sole: `meta.dek`, `nodes.n4.body`, `classes.24.nt`,
 `questions.q3.a`.
 
-## 3. Scegliere la password
+## 3. Provare in locale
 
 ```bash
-npm install
-npm run hash-password
-```
-
-Chiede la password e stampa due righe da incollare fra le variabili d'ambiente:
-l'hash scrypt della password e un `SESSION_SECRET` nuovo. La password in chiaro
-non viene scritta da nessuna parte: il server confronta solo l'hash, e il
-browser non la riceve mai.
-
-Cambiando `SESSION_SECRET` si invalidano tutti i cookie: è il modo di far
-rientrare tutti con una password nuova.
-
-## 4. Provare in locale
-
-```bash
-cp .env.example .env.local     # poi riempilo con i valori dei passi 1 e 3
+cp .env.example .env.local     # poi riempilo con i valori del passo 1
 npm run seed                   # popola le tabelle con i contenuti di partenza
 npm run dev                    # http://localhost:3000
 ```
@@ -88,14 +79,14 @@ npm run dev                    # http://localhost:3000
 `npm run seed` non sovrascrive nulla: inserisce solo ciò che manca. Si può
 rilanciare senza paura, anche dopo mesi di lavoro sul dossier.
 
-## 5. Pubblicare su Vercel
+## 4. Pubblicare su Vercel
 
 1. Porta il repository su GitHub.
 2. Su [vercel.com](https://vercel.com) fai **Add New → Project** e scegli il
    repository. Next.js viene riconosciuto da solo: non c'è niente da
    configurare, né comandi di build né directory di output.
 3. Prima di premere **Deploy**, apri **Environment Variables** e incolla le
-   cinque variabili di `.env.example`, con i valori dei passi 1 e 3. Mettile su
+   cinque variabili di `.env.example`, con i valori del passo 1. Mettile su
    tutti e tre gli ambienti (Production, Preview, Development).
 4. Deploy.
 
@@ -105,27 +96,20 @@ computer, con `.env.local` che punta al progetto Supabase di produzione.
 
 ### Cambiando una variabile d'ambiente serve sempre un Redeploy
 
-Non è un dettaglio. Il middleware che protegge le rotte gira sul runtime edge e
-riceve le variabili quando il sito viene costruito: se si cambia
-`SESSION_SECRET` senza ridistribuire, la rotta di login firma i cookie con il
-segreto nuovo e il middleware li verifica con quello vecchio. La password viene
-accettata, ma la sessione non passa e si torna alla schermata della password.
-
-Se capita, il sito ora lo dice: sopra il campo compare un avviso che spiega che
-serve un Redeploy. Su Vercel: **Deployments → … → Redeploy**, togliendo la
-spunta « Use existing Build Cache ».
+Vercel legge le variabili quando costruisce il sito, non a ogni richiesta:
+finché non si ridistribuisce, il sito continua a usare quelle di prima. Su
+Vercel: **Deployments → … → Redeploy**, togliendo la spunta « Use existing
+Build Cache ».
 
 ## Le variabili
 
-Sono cinque, tutte commentate in [`.env.example`](.env.example):
+Sono tre, tutte commentate in [`.env.example`](.env.example):
 
 | variabile                       | dove |
 | ------------------------------- | ---- |
 | `NEXT_PUBLIC_SUPABASE_URL`      | server e browser |
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | server e browser, sola lettura |
 | `SUPABASE_SERVICE_ROLE_KEY`     | solo server |
-| `DOSSIER_PASSWORD_HASH`         | solo server |
-| `SESSION_SECRET`                | solo server |
 
 Nel repository non c'è nessun segreto: `.env.local` è ignorato da git.
 
@@ -157,21 +141,24 @@ linea, la coda si svuota e si riallinea con il database.
 **Il nome** si sceglie al primo accesso, si tiene in `localStorage` e si cambia
 dalla barra. Non è un account: serve alla presenza e a firmare le modifiche.
 
+**Non c'è autenticazione.** Il dossier è raggiungibile da chiunque conosca
+l'indirizzo, in lettura e in scrittura. Volendo rimetterci una barriera senza
+toccare il codice, Vercel offre **Settings → Deployment Protection**.
+
 ## Struttura
 
 ```
 app/            pagine, rotte API, i due fogli di stile
 components/     il dossier; collab/ tiene Realtime, lock e coda
-lib/            costanti estratte dal dossier, chiavi, autenticazione, tipi
-scripts/        hash della password, seed del database
+lib/            costanti estratte dal dossier, chiavi, tipi
+scripts/        seed del database
 supabase/       la migrazione versionata e la configurazione della CLI
 public/allegato il .docx della committente
-proxy.ts        il middleware che protegge ogni rotta
 ```
 
 Il CSS del dossier sta in `app/dossier.css`, riportato riga per riga dal file di
 partenza. Tutto ciò che è stato aggiunto — presenza, prenotazioni, avvisi,
-password — sta in `app/collab.css`, separato apposta.
+nome — sta in `app/collab.css`, separato apposta.
 
 `lib/constants.ts` e `lib/seed-data.json` sono stati estratti automaticamente
 dall'oggetto `DEF` del dossier originale. Il primo tiene ciò che non si modifica
@@ -185,5 +172,4 @@ npm run dev            # sviluppo
 npm run build          # build di produzione
 npm run typecheck      # solo i tipi
 npm run seed           # inserisce ciò che manca, non tocca il resto
-npm run hash-password  # nuova password condivisa
 ```

@@ -11,8 +11,7 @@
     "start": "next start",
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
-    "seed": "node scripts/seed.mjs",
-    "hash-password": "node scripts/hash-password.mjs"
+    "seed": "node scripts/seed.mjs"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.116.0",

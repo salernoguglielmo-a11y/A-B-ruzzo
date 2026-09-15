@@ -1,6 +1,6 @@
 /* Aggiunte per il lavoro in più persone. Il CSS del dossier sta in
    dossier.css e non è stato toccato: qui ci sono solo le cose che prima non
-   esistevano — presenza, prenotazione dei campi, avvisi, password, nome.
+   esistevano — presenza, prenotazione dei campi, avvisi, nome.
    Tutto usa le stesse variabili di tema, chiaro e scuro, del file originale. */
 
 /* ------------------------------ campi comuni ------------------------------ */
@@ -203,8 +203,7 @@ a.btn:hover {
   background: color-mix(in srgb, var(--paper) 78%, transparent);
   backdrop-filter: blur(6px);
 }
-.gate-carta,
-.login-carta {
+.gate-carta {
   width: min(420px, 100%);
   display: flex;
   flex-direction: column;
@@ -226,49 +225,8 @@ a.btn:hover {
   color: var(--muted);
   font-size: 13.5px;
 }
-.gate-carta .btn,
-.login-carta .btn {
+.gate-carta .btn {
   align-self: flex-start;
-}
-
-/* -------------------------------- login ---------------------------------- */
-
-.login {
-  min-height: 100dvh;
-  display: grid;
-  place-items: center;
-  padding: 24px 20px;
-}
-.login-carta h1 {
-  font-family: var(--display);
-  font-weight: 600;
-  font-size: clamp(32px, 8vw, 42px);
-  line-height: 1.02;
-  letter-spacing: -.02em;
-  margin-top: 10px;
-}
-.login-carta h1 .br {
-  color: var(--accent-soft);
-}
-.login-carta .dek {
-  font-family: var(--display);
-  font-style: italic;
-  font-size: 17px;
-  color: var(--muted);
-  margin: 0 0 6px;
-}
-.login-carta label {
-  font-family: var(--mono);
-  font-size: 10.5px;
-  letter-spacing: .1em;
-  text-transform: uppercase;
-  color: var(--faint);
-  margin-bottom: -6px;
-}
-.login-errore {
-  margin: 0;
-  font-size: 13px;
-  color: var(--crit);
 }
 
 /* ------------------------- diagnostica di avvio -------------------------- */
@@ -337,29 +295,4 @@ a.btn:hover {
   .chi.io::after {
     display: none;
   }
-}
-
-/* Uscire serve soprattutto su un computer condiviso: resta discreto. */
-.btn.esci {
-  border-color: transparent;
-  padding-inline: 8px;
-}
-.btn.esci:hover {
-  border-color: var(--line-strong);
-}
-
-/* L'avviso del rimbalzo: password giusta ma sessione non riconosciuta. */
-.login-avviso {
-  margin: 0;
-  font-size: 13px;
-  line-height: 1.5;
-  color: var(--warn);
-  background: var(--warn-bg);
-  border: 1px solid var(--warn);
-  border-radius: 3px;
-  padding: 10px 12px;
-}
-.login-avviso code {
-  font-family: var(--mono);
-  font-size: 12px;
 }

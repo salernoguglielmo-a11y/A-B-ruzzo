@@ -3,8 +3,11 @@ import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 
 /* Client del browser: chiave anon, che le policy RLS limitano alla sola
    lettura. Serve unicamente ad ascoltare Realtime; ogni scrittura passa dalle
-   rotte API. Arriva al browser soltanto dopo la password, perché il bundle è
-   servito da rotte protette dal middleware. */
+   rotte API.
+
+   Il dossier è aperto: non c'è autenticazione, quindi questa chiave è
+   pubblica di fatto, come lo sono i contenuti. Le policy fanno sì che valga
+   solo a leggere, mai a scrivere. */
 
 let cache: SupabaseClient | null = null;
 

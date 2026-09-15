@@ -4,8 +4,9 @@ import { useState } from "react";
 import { useCollab } from "./CollabProvider";
 
 /**
- * Subito dopo la password si chiede come chiamarsi. Campo libero: il nome non
- * è un account, serve solo alla presenza e a firmare le modifiche.
+ * Aprendo il dossier si chiede come chiamarsi. Campo libero: il nome non è un
+ * account — non c'è nulla da autenticare — e serve solo alla presenza e a
+ * firmare le modifiche.
  */
 export default function NomeGate() {
   const { nome, impostaNome } = useCollab();

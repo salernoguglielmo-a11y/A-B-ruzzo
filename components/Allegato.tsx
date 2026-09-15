@@ -4,8 +4,7 @@ import { ALLEGATO_HREF, ALLEGATO_NOME, ATT } from "@/lib/constants";
 
 /**
  * Il business model ricevuto. Il testo è fisso; il file originale si scarica
- * con un link normale, servito da /public e protetto dal middleware come tutto
- * il resto.
+ * con un link normale, servito staticamente da /public.
  */
 export default function Allegato() {
   return (

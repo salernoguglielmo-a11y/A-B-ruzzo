@@ -140,9 +140,10 @@ as $$
 $$;
 
 -- ------------------------------ RLS ----------------------------------------
--- La chiave anon arriva al browser solo dopo la password, e serve unicamente
--- a leggere e ad ascoltare Realtime. Ogni scrittura passa dalle rotte API del
--- server, che usano la service role e non sono soggette a queste policy.
+-- Il dossier è aperto, quindi la chiave anon è pubblica di fatto: qui le si
+-- concede la sola lettura, che è ciò che serve a Realtime. Ogni scrittura
+-- passa dalle rotte API del server, che usano la service role e non sono
+-- soggette a queste policy.
 alter table public.fields    enable row level security;
 alter table public.flags     enable row level security;
 alter table public.questions enable row level security;
