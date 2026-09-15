@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { useCollab } from "./CollabProvider";
 
 function iniziali(nome: string): string {
@@ -18,6 +19,7 @@ function tinta(nome: string): number {
 }
 
 export default function Barra() {
+  const router = useRouter();
   const { nome, impostaNome, presenze, connesso, inCoda, statoSalvataggio, clientId } = useCollab();
   const [rinomina, setRinomina] = useState(false);
   const [bozza, setBozza] = useState("");
@@ -112,7 +114,7 @@ export default function Barra() {
         title="Chiude la sessione su questo dispositivo"
         onClick={() => {
           void fetch("/api/auth/logout", { method: "POST" }).finally(() => {
-            window.location.href = "/login";
+            router.replace("/login");
           });
         }}
       >

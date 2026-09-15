@@ -9,6 +9,7 @@ import {
   useRef,
   useState,
 } from "react";
+import { useRouter } from "next/navigation";
 import type { RealtimeChannel, RealtimePostgresChangesPayload } from "@supabase/supabase-js";
 import { supabaseBrowser } from "@/lib/supabase-browser";
 import type { Domanda, Lock, Presenza, RigaValore, Snapshot, Valore } from "@/lib/types";
@@ -89,6 +90,7 @@ export default function CollabProvider({
   iniziale: Snapshot;
   children: React.ReactNode;
 }) {
+  const router = useRouter();
   const [campi, setCampi] = useState<Record<string, Valore>>(iniziale.fields);
   const [flag, setFlag] = useState<Record<string, Valore>>(iniziale.flags);
   const [domande, setDomande] = useState<Domanda[]>(iniziale.questions);
@@ -158,14 +160,14 @@ export default function CollabProvider({
         }),
       });
       if (r.status === 401) {
-        window.location.href = "/login";
+        router.replace("/login");
         return true;
       }
       // 400 e 409 non migliorano ritentando: la modifica si scarta.
       if (r.status === 400 || r.status === 409 || r.status === 413) return true;
       return r.ok;
     },
-    [clientId]
+    [clientId, router]
   );
 
   const inviaFlag = useCallback(
@@ -179,13 +181,13 @@ export default function CollabProvider({
         }),
       });
       if (r.status === 401) {
-        window.location.href = "/login";
+        router.replace("/login");
         return true;
       }
       if (r.status === 400) return true;
       return r.ok;
     },
-    []
+    [router]
   );
 
   const svuota = useCallback(async () => {
@@ -357,7 +359,7 @@ export default function CollabProvider({
           body: JSON.stringify({ azione: "prendi", key, autore: nomeRef.current, clientId }),
         });
         if (r.status === 401) {
-          window.location.href = "/login";
+          router.replace("/login");
           return false;
         }
         if (!r.ok) return true; // problema del server: non si blocca chi scrive
@@ -370,7 +372,7 @@ export default function CollabProvider({
         return true;
       }
     },
-    [clientId, registraLock]
+    [clientId, registraLock, router]
   );
 
   const rinnovaLock = useCallback(
