@@ -259,6 +259,90 @@ a.btn:hover {
   border-radius: 2px;
   color: var(--accent);
 }
+.diagnosi h2 {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: .11em;
+  text-transform: uppercase;
+  color: var(--accent-soft);
+  margin: 26px 0 8px;
+}
+.diagnosi ol {
+  margin: 10px 0 0;
+  padding-left: 20px;
+  color: var(--muted);
+}
+.diagnosi ol li {
+  margin-top: 8px;
+}
+.diagnosi .minuta {
+  font-size: 13px;
+  color: var(--faint);
+}
+.diagnosi .errore-grezzo {
+  font-family: var(--mono);
+  font-size: 12.5px;
+  color: var(--crit);
+  background: var(--crit-bg);
+  border-left: 2px solid var(--crit);
+  border-radius: 0 3px 3px 0;
+  padding: 10px 12px;
+  overflow-wrap: anywhere;
+}
+
+/* L'elenco delle variabili, con accanto quali ci sono e quali no. */
+.variabili {
+  list-style: none;
+  margin: 16px 0 0;
+  padding: 0;
+  display: grid;
+  gap: 1px;
+  background: var(--line);
+  border: 1px solid var(--line);
+  border-radius: 3px;
+  overflow: hidden;
+}
+.variabili li {
+  display: grid;
+  grid-template-columns: minmax(0, auto) auto;
+  gap: 4px 12px;
+  align-items: baseline;
+  padding: 10px 12px;
+  background: var(--surface);
+}
+.variabili code {
+  overflow-wrap: anywhere;
+}
+.variabili .esito {
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  text-align: right;
+  white-space: nowrap;
+}
+.variabili .serve {
+  grid-column: 1 / -1;
+  font-size: 13px;
+  color: var(--faint);
+}
+.variabili .assente {
+  background: var(--crit-bg);
+}
+.variabili .assente .esito {
+  color: var(--crit);
+}
+.variabili .presente .esito {
+  color: var(--ok);
+}
+@media (max-width: 560px) {
+  .variabili li {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .variabili .esito {
+    text-align: left;
+  }
+}
 
 /* ------------------------ correzioni di impaginazione --------------------- */
 /* Sotto gli 880 px il dossier originale mette `grid-template-columns:1fr`: il
