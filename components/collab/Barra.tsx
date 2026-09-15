@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 import { useCollab } from "./CollabProvider";
 
 function iniziali(nome: string): string {
@@ -19,7 +18,6 @@ function tinta(nome: string): number {
 }
 
 export default function Barra() {
-  const router = useRouter();
   const { nome, impostaNome, presenze, connesso, inCoda, statoSalvataggio, clientId } = useCollab();
   const [rinomina, setRinomina] = useState(false);
   const [bozza, setBozza] = useState("");
@@ -113,8 +111,13 @@ export default function Barra() {
         className="btn esci"
         title="Chiude la sessione su questo dispositivo"
         onClick={() => {
+          // Navigazione piena: uscendo si butta via tutto lo stato della
+          // pagina — canale Realtime, coda, presenza — invece di lasciarlo
+          // vivo dietro la schermata della password.
           void fetch("/api/auth/logout", { method: "POST" }).finally(() => {
-            router.replace("/login");
+            // Come sopra: uscire deve azzerare la pagina, non scivolarci sopra.
+            // eslint-disable-next-line @next/next/no-location-assign-relative-destination
+            window.location.assign("/login");
           });
         }}
       >

@@ -103,8 +103,17 @@ Al primo avvio, se le tabelle sono vuote, la pagina lo dice invece di mostrare
 un dossier senza testo. Per popolarle basta lanciare `npm run seed` dal proprio
 computer, con `.env.local` che punta al progetto Supabase di produzione.
 
-Cambiando una variabile d'ambiente su Vercel serve un nuovo deploy perché venga
-letta.
+### Cambiando una variabile d'ambiente serve sempre un Redeploy
+
+Non è un dettaglio. Il middleware che protegge le rotte gira sul runtime edge e
+riceve le variabili quando il sito viene costruito: se si cambia
+`SESSION_SECRET` senza ridistribuire, la rotta di login firma i cookie con il
+segreto nuovo e il middleware li verifica con quello vecchio. La password viene
+accettata, ma la sessione non passa e si torna alla schermata della password.
+
+Se capita, il sito ora lo dice: sopra il campo compare un avviso che spiega che
+serve un Redeploy. Su Vercel: **Deployments → … → Redeploy**, togliendo la
+spunta « Use existing Build Cache ».
 
 ## Le variabili
 

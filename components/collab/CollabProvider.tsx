@@ -9,7 +9,6 @@ import {
   useRef,
   useState,
 } from "react";
-import { useRouter } from "next/navigation";
 import type { RealtimeChannel, RealtimePostgresChangesPayload } from "@supabase/supabase-js";
 import { supabaseBrowser } from "@/lib/supabase-browser";
 import type { Domanda, Lock, Presenza, RigaValore, Snapshot, Valore } from "@/lib/types";
@@ -90,7 +89,6 @@ export default function CollabProvider({
   iniziale: Snapshot;
   children: React.ReactNode;
 }) {
-  const router = useRouter();
   const [campi, setCampi] = useState<Record<string, Valore>>(iniziale.fields);
   const [flag, setFlag] = useState<Record<string, Valore>>(iniziale.flags);
   const [domande, setDomande] = useState<Domanda[]>(iniziale.questions);
@@ -147,6 +145,32 @@ export default function CollabProvider({
   const attesa = useRef(1000);
   const timerRitentativo = useRef<ReturnType<typeof setTimeout> | null>(null);
 
+  /* Sessione caduta (cookie scaduto, o SESSION_SECRET cambiato sul server).
+     Si esce con una navigazione piena, mai con `router.replace`.
+
+     Una navigazione morbida qui fa tre danni insieme: i timer della coda
+     restano vivi e ogni ritentativo prende un altro 401 che chiama di nuovo
+     l'uscita, la pagina rimbalza fra dossier e login, e React riusa i nodi del
+     DOM fra le due schermate — così il testo appena digitato in una nota
+     finisce dentro il campo della password. Ricaricando davvero, invece, tutto
+     muore e si riparte puliti.
+
+     Il ref fa sì che accada una volta sola, anche se i 401 arrivano a raffica. */
+  const uscitaAvviata = useRef(false);
+  const esciPerSessioneScaduta = useCallback(() => {
+    if (uscitaAvviata.current) return;
+    uscitaAvviata.current = true;
+    if (timerRitentativo.current) {
+      clearTimeout(timerRitentativo.current);
+      timerRitentativo.current = null;
+    }
+    coda.current.clear();
+    // Qui la regola di Next va disattivata apposta: `useRouter().push` farebbe
+    // una navigazione morbida, che è esattamente ciò che rompe questo caso.
+    // eslint-disable-next-line @next/next/no-location-assign-relative-destination
+    window.location.assign("/login");
+  }, []);
+
   const inviaCampo = useCallback(
     async (op: Extract<Operazione, { tipo: "campo" }>): Promise<boolean> => {
       const r = await fetch("/api/fields", {
@@ -160,14 +184,14 @@ export default function CollabProvider({
         }),
       });
       if (r.status === 401) {
-        router.replace("/login");
+        esciPerSessioneScaduta();
         return true;
       }
       // 400 e 409 non migliorano ritentando: la modifica si scarta.
       if (r.status === 400 || r.status === 409 || r.status === 413) return true;
       return r.ok;
     },
-    [clientId, router]
+    [clientId, esciPerSessioneScaduta]
   );
 
   const inviaFlag = useCallback(
@@ -181,13 +205,13 @@ export default function CollabProvider({
         }),
       });
       if (r.status === 401) {
-        router.replace("/login");
+        esciPerSessioneScaduta();
         return true;
       }
       if (r.status === 400) return true;
       return r.ok;
     },
-    [router]
+    [esciPerSessioneScaduta]
   );
 
   const svuota = useCallback(async () => {
@@ -359,7 +383,7 @@ export default function CollabProvider({
           body: JSON.stringify({ azione: "prendi", key, autore: nomeRef.current, clientId }),
         });
         if (r.status === 401) {
-          router.replace("/login");
+          esciPerSessioneScaduta();
           return false;
         }
         if (!r.ok) return true; // problema del server: non si blocca chi scrive
@@ -372,7 +396,7 @@ export default function CollabProvider({
         return true;
       }
     },
-    [clientId, registraLock, router]
+    [clientId, registraLock, esciPerSessioneScaduta]
   );
 
   const rinnovaLock = useCallback(
@@ -445,6 +469,17 @@ export default function CollabProvider({
       addio();
     };
   }, [clientId]);
+
+  /* Smontando il provider il ritentativo va fermato: altrimenti continuerebbe
+     a bussare al server da una pagina che non esiste più. */
+  useEffect(() => {
+    return () => {
+      if (timerRitentativo.current) {
+        clearTimeout(timerRitentativo.current);
+        timerRitentativo.current = null;
+      }
+    };
+  }, []);
 
   /* ------------------------- battito e scadenze ------------------------- */
 

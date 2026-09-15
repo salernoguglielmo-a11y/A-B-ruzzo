@@ -347,3 +347,19 @@ a.btn:hover {
 .btn.esci:hover {
   border-color: var(--line-strong);
 }
+
+/* L'avviso del rimbalzo: password giusta ma sessione non riconosciuta. */
+.login-avviso {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--warn);
+  background: var(--warn-bg);
+  border: 1px solid var(--warn);
+  border-radius: 3px;
+  padding: 10px 12px;
+}
+.login-avviso code {
+  font-family: var(--mono);
+  font-size: 12px;
+}
